@@ -5,6 +5,16 @@ import subprocess
 import frida
 
 #Notes: it currently needs to be ran from the folder where mupen64-ui-console.exe is, so that it can get the proper plugins for stuff like video and sound etc.
+#Notes: this can be changed by adding command line arguments. #TODO
+
+#TODO:
+#Remember last selected mupen64-ui-console and game, probably through a .cfg file
+#Add a selector for script (and remember it)
+#Give better feedback on recording
+#Allow the app to be launched from anywhere, by providing command line arguments to the plugin directory
+#Do something with the SQL data here
+#Add customization for where to record the control data
+
 
 class App(CTk):
 
@@ -55,7 +65,7 @@ class App(CTk):
 
     def _setup_frida(self):
         self.session = frida.attach("mupen64plus-ui-console.exe")
-        f = open("Frida Scripts/control_info.js", "r")
+        f = open("Control Info/control_info.js", "r")
         self.script = self.session.create_script(
             f.read()
         )

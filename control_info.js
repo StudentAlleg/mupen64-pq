@@ -1,7 +1,8 @@
-//TODO: make a frida js program that writes info about the control state to a sqlite database
+//TODO: Track the controls of all players
+//TODO: Get some sort of information as to the current iteration/frame/time
 console.log("Frida Find Functions");
 
-let db = SqliteDatabase.open("control_info.db", {flags: ["create", "readwrite"]});
+let db = SqliteDatabase.open("Control Info/control_info.db", {flags: ["create", "readwrite"]});
 
 db.exec("CREATE TABLE IF NOT EXISTS controls(i INT PRIMARY KEY, p UNSIGNED TINYINT, c UNSIGNED INT);");
 
