@@ -2,9 +2,9 @@
 //TODO: Get some sort of information as to the current iteration/frame/time
 console.log("Frida Find Functions");
 
-let db = SqliteDatabase.open("Control Info/control_info.db", {flags: ["create", "readwrite"]});
+let db = SqliteDatabase.open("control_info.db", {flags: ["create", "readwrite"]});
 
-db.exec("CREATE TABLE IF NOT EXISTS controls(i INT PRIMARY KEY, p UNSIGNED TINYINT, c UNSIGNED INT);");
+db.exec("CREATE TABLE IF NOT EXISTS controls(i INT PRIMARY KEY, player UNSIGNED TINYINT, controlint UNSIGNED INT, controlblob BLOB(32));");
 
 
 
@@ -44,16 +44,19 @@ Interceptor.attach(GetKeys, {
     onLeave(retval) {
         if (this.playerController) {
             let button = this.playerButtonPtr.readU32()//.and(0xFF)
+            let buttonBlob = wrap(this.playerButtonPtr, 32)
             //if (button != 0) {
             //    console.log("LEAVE", button)
             //}
-            let statement = db.prepare("INSERT INTO controls VALUES (?, ?, ?);");
+            let statement = db.prepare("INSERT INTO controls VALUES (?, ?, ?, ?);");
             //This should probably be a time/iteration value for playback
             statement.bindInteger(1, i);
             //This will only be the player controller, which is 0.
             statement.bindInteger(2, 0);
             //the controls
             statement.bindInteger(3, button);
+            //the controls as a blob
+            statement.bindBlob(3, buttonBlob);
             statement.step();
             i++;
         }
