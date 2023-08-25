@@ -77,16 +77,26 @@ class App(CTk):
 
         self.recording = False
         self.session = None
-        self.script = None
+        self.controlscript = None
+        self.savescript = None
 
     def _setup_frida(self):
         script_file = self.config_parser["DEFAULT"]["control-script"]
         print(script_file)
         self.session = frida.attach("mupen64plus-ui-console.exe")
         f = open(script_file, "r")
-        self.script = self.session.create_script(
+        self.controlscript = self.session.create_script(
             f.read()
         )
+        f.close()
+        f = open("savestate.js")
+        self.savescript = self.session.create_script(
+            f.read()
+        )
+        f.close()
+
+
+
         print("Frida Setup")
         
 
@@ -138,11 +148,11 @@ class App(CTk):
     def run_mupen64plus(self):
         #should run mupen64plus-ui-console with the specified game name
         subprocess.Popen([self.exe_name, 
-                          "--plugin", self.plugin_path,
                           "--configdir", self.plugin_path, 
                           "--datadir", self.plugin_path, 
                           "--plugindir", self.plugin_path,
-                          self.game_name, ])
+                          #"--debug",
+                          self.game_name,])
         self._setup_frida()
         self.record_button.configure(state="normal")
     
@@ -157,12 +167,14 @@ class App(CTk):
         if self.recording:
             #TODO stop the script
             self.recording = False
-            self.script.unload()
+            self.controlscript.unload()
+            self.savescript.unload()
             print("Stopped Recording")
             self.record_button.configure(text="Start Recording")
         #start the recording
         else:
-            self.script.load()
+            self.controlscript.load()
+            self.savescript.load()
             self.recording = True
             print("Started Recording")
             self.record_button.configure(text="Stop Recording")
