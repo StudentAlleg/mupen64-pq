@@ -9,6 +9,8 @@ function getPrivateSymbol(name) {
 
 const savestates_save_pj64_ptr = DebugSymbol.fromName("savestates_save_pj64").address
 
+console.log("savestate ptr");
+console.log(savestates_save_pj64_ptr);
 const savestates_save_pj64 = new NativeFunction(
 	savestates_save_pj64_ptr,
 	'int', //return type
@@ -26,13 +28,13 @@ const write_func = new NativeCallback(function(handle, data, len) {
 	return len.toNumber(); //return non-0 to indicate we have successfully saved
 }, 'int', ['pointer', 'pointer', 'size_t']);
 
-
+console.log("1")
 const g_dev_addr = getPrivateSymbol("g_dev");
 
 const ignored_handle = ptr(42);
 savestates_save_pj64(g_dev_addr, ignored_handle, write_func)
+console.log("2");
 console.log(hexdump(last_save_data, {length: 1024}));
-
 Interceptor.attach(savestates_save_pj64_ptr, {
     onEnter(args) {
         console.log(args)
