@@ -16,7 +16,39 @@ import configparser
 #Do something with the SQL data here
 #Add customization for where to record the control data
 
+
+
+#setup config
 config_file = "control_info.ini"
+config_p = configparser.ConfigParser()
+
+try:
+    config_p.read(config_file)
+except FileNotFoundError:
+    f = open(config_file, "wr")
+    f.write("[DEFAULT]")
+    f.close()
+    config_p.read(config_file)
+
+if "mupen64plus-plugins" not in config_p["DEFAULT"]:
+    config_p["DEFAULT"]["mupen64plus-plugins"] = "none"
+
+if "mupen64plus-ui-console" not in config_p["DEFAULT"]:
+    config_p["DEFAULT"]["mupen64plus-ui-console"] = "none"
+
+if "n64-game" not in config_p["DEFAULT"]:
+    config_p["DEFAULT"]["n64-game"] = "none"
+
+if "control-script" not in config_p["DEFAULT"]:
+    config_p["DEFAULT"]["control-script"] = "control_info.js"
+
+if "save-script" not in config_p["DEFAULT"]:
+    config_p["DEFAULT"]["save-script"] = "savestate.js"
+
+with open(config_file, "w") as configfile:
+    config_p.write(configfile)
+
+
 
 class App(CTk):
 
@@ -81,22 +113,20 @@ class App(CTk):
         self.savescript = None
 
     def _setup_frida(self):
-        script_file = self.config_parser["DEFAULT"]["control-script"]
-        print(script_file)
+        control_file = self.config_parser["DEFAULT"]["control-script"]
+        print(control_file)
         self.session = frida.attach("mupen64plus-ui-console.exe")
-        f = open(script_file, "r")
+        f = open(control_file, "r")
         self.controlscript = self.session.create_script(
             f.read()
         )
         f.close()
-        f = open("savestate.js")
+        save_file = self.config_parser["DEFAULT"]["save-script"]
+        f = open(save_file, "r")
         self.savescript = self.session.create_script(
             f.read()
         )
         f.close()
-
-
-
         print("Frida Setup")
         
 
@@ -173,7 +203,7 @@ class App(CTk):
             self.record_button.configure(text="Start Recording")
         #start the recording
         else:
-            self.controlscript.load()
+            #self.controlscript.load()
             self.savescript.load()
             self.recording = True
             print("Started Recording")

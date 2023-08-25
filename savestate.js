@@ -24,14 +24,16 @@ let last_save_data;
 
 //this is our own function, so that we can save data to where we want to
 const write_func = new NativeCallback(function(handle, data, len) {
+	console.log("start write fn");
 	last_save_data = Memory.dup(data, len);
 	return len.toNumber(); //return non-0 to indicate we have successfully saved
 }, 'int', ['pointer', 'pointer', 'size_t']);
 
 console.log("1")
 const g_dev_addr = getPrivateSymbol("g_dev");
-
+console.log(g_dev_addr);
 const ignored_handle = ptr(42);
+console.log("starting savestates_save_pj64");
 savestates_save_pj64(g_dev_addr, ignored_handle, write_func)
 console.log("2");
 console.log(hexdump(last_save_data, {length: 1024}));
