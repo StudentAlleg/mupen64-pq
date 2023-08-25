@@ -56,10 +56,11 @@ class App(CTk):
         super().__init__(*args, **kwargs)
         self.config_parser = configparser.ConfigParser()
         self.config_parser.read(config_file)
-        print(self.config_parser["DEFAULT"])
-        
-        for key in self.config_parser["DEFAULT"]:
-            print(key)
+
+        self.recording = False
+        self.session = None
+        self.controlscript = None
+        self.savescript = None
 
         self.main_frame = CTkFrame(self)
         self.main_frame.grid(row=0, column=0, padx=10, pady=10)
@@ -107,12 +108,8 @@ class App(CTk):
         self.game_name = self.config_parser["DEFAULT"]["n64-game"]
         self.update_info_text()
 
-        self.recording = False
-        self.session = None
-        self.controlscript = None
-        self.savescript = None
-
     def _setup_frida(self):
+        #set up the control script
         control_file = self.config_parser["DEFAULT"]["control-script"]
         print(control_file)
         self.session = frida.attach("mupen64plus-ui-console.exe")
@@ -121,6 +118,8 @@ class App(CTk):
             f.read()
         )
         f.close()
+
+        #set up the save script
         save_file = self.config_parser["DEFAULT"]["save-script"]
         f = open(save_file, "r")
         self.savescript = self.session.create_script(
@@ -184,6 +183,7 @@ class App(CTk):
                           #"--debug",
                           self.game_name,])
         self._setup_frida()
+        #enable the record button
         self.record_button.configure(state="normal")
     
     def record_function(self):
@@ -195,15 +195,16 @@ class App(CTk):
         
         #stop the recording
         if self.recording:
-            #TODO stop the script
             self.recording = False
+
+            #you actually need to restart after reloading
             self.controlscript.unload()
             self.savescript.unload()
             print("Stopped Recording")
-            self.record_button.configure(text="Start Recording")
+            self.record_button.configure(text="Must Restart to Record again", state="disabled")
         #start the recording
         else:
-            #self.controlscript.load()
+            self.controlscript.load()
             self.savescript.load()
             self.recording = True
             print("Started Recording")
