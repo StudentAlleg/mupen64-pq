@@ -48,8 +48,6 @@ if "save-script" not in config_p["DEFAULT"]:
 with open(config_file, "w") as configfile:
     config_p.write(configfile)
 
-
-
 class App(CTk):
 
     def __init__(self, *args, **kwargs):
@@ -219,7 +217,6 @@ class App(CTk):
         with open(config_file, "w") as configfile:
             self.config_parser.write(configfile)
             configfile.close()
-            
 
     def quit(self) -> None:
         #save the config
