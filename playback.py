@@ -21,7 +21,7 @@ import configparser
 
 
 #setup config
-config_file = "control_info.ini"
+config_file = "playback.ini"
 config_p = configparser.ConfigParser()
 
 try:
@@ -41,14 +41,19 @@ if "mupen64plus-ui-console" not in config_p["DEFAULT"]:
 if "n64-game" not in config_p["DEFAULT"]:
     config_p["DEFAULT"]["n64-game"] = "none"
 
-if "control-script" not in config_p["DEFAULT"]:
-    config_p["DEFAULT"]["control-script"] = "control_info.js"
+if "playback-script" not in config_p["DEFAULT"]:
+    config_p["DEFAULT"]["playback-script"] = "playback.js"
 
-if "save-script" not in config_p["DEFAULT"]:
-    config_p["DEFAULT"]["save-script"] = "savestate.js"
-
-with open(config_file, "w") as configfile:
-    config_p.write(configfile)
+#    config_p["DEFAULT"]["control-script"] = "control_info.js"
+#
+#if "control-script" not in config_p["DEFAULT"]:
+#    config_p["DEFAULT"]["control-script"] = "control_info.js"
+#
+#if "save-script" not in config_p["DEFAULT"]:
+#    config_p["DEFAULT"]["save-script"] = "savestate.js"
+#
+#with open(config_file, "w") as configfile:
+#    config_p.write(configfile)
 
 class App(CTk):
 
@@ -57,10 +62,9 @@ class App(CTk):
         self.config_parser = configparser.ConfigParser()
         self.config_parser.read(config_file)
 
-        self.recording = False
+        #self.recording = False
         self.session = None
-        self.controlscript = None
-        self.savescript = None
+        self.playbackscript = None
 
         self.main_frame = CTkFrame(self)
         self.main_frame.grid(row=0, column=0, padx=10, pady=10)
@@ -110,22 +114,13 @@ class App(CTk):
 
     def _setup_frida(self):
         #set up the control script
-        control_file = self.config_parser["DEFAULT"]["control-script"]
-        print(control_file)
+        playback_file = self.config_parser["DEFAULT"]["playback-script"]
+        print(playback_file)
         self.session = frida.attach("mupen64plus-ui-console.exe")
-        f = open(control_file, "r")
-        self.controlscript = self.session.create_script(
+        f = open(playback_file, "r")
+        self.playback_file = self.session.create_script(
             f.read()
         )
-        f.close()
-
-        #set up the save script
-        save_file = self.config_parser["DEFAULT"]["save-script"]
-        f = open(save_file, "r")
-        self.savescript = self.session.create_script(
-            f.read()#, runtime="v8"
-        )
-        #self.savescript.enable_debugger(9999)
         f.close()
         print("Frida Setup")
 

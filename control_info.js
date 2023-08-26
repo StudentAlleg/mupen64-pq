@@ -1,4 +1,4 @@
-
+//Should probably record the game
 //TODO: make a frida js program that writes info about the control state to a sqlite database
 console.log("Frida Find Functions");
 
