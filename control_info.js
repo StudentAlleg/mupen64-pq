@@ -6,7 +6,9 @@ let db = SqliteDatabase.open("control_info.db", {flags: ["create", "readwrite"]}
 
 db.exec("CREATE TABLE IF NOT EXISTS controls(i INT PRIMARY KEY, player UNSIGNED TINYINT, controlint UNSIGNED INT);");
 
-
+function getPrivateSymbol(name) {
+	return Module.enumerateSymbols("mupen64plus.dll").filter(e => e.name == name)[0].address
+}
 
 //mupen64plus-input-sdl.dll
 

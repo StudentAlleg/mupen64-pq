@@ -121,11 +121,11 @@ class App(CTk):
         save_file = self.config_parser["DEFAULT"]["save-script"]
         f = open(save_file, "r")
         self.savescript = self.session.create_script(
-            f.read()
+            f.read()#, runtime="v8"
         )
+        #self.savescript.enable_debugger(9999)
         f.close()
         print("Frida Setup")
-        
 
     def ok_function(self):
         self.quit()
@@ -199,9 +199,15 @@ class App(CTk):
             self.controlscript.unload()
             self.savescript.unload()
             print("Stopped Recording")
-            self.record_button.configure(text="Must Restart to Record again", state="disabled")
+            self.record_button.configure(text="Start Recording")
         #start the recording
         else:
+            try:
+                self._setup_frida()
+            except Exception as e:
+                print(e)
+                #this is fine, probably
+                pass
             self.controlscript.load()
             self.savescript.load()
             self.recording = True
