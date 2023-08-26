@@ -4,7 +4,7 @@ console.log("Frida Find Functions");
 
 let db = SqliteDatabase.open("control_info.db", {flags: ["create", "readwrite"]});
 
-db.exec("CREATE TABLE IF NOT EXISTS controls(i INT PRIMARY KEY, player UNSIGNED TINYINT, controlint UNSIGNED INT);");
+db.exec("CREATE TABLE IF NOT EXISTS controls(frame INT, player UNSIGNED TINYINT, controlint UNSIGNED INT);");
 
 function getPrivateSymbol(name) {
 	return Module.enumerateSymbols("mupen64plus.dll").filter(e => e.name == name)[0].address
@@ -27,6 +27,8 @@ let results = Process.enumerateModules().filter(e => e.name.includes("upen"));
 //     console.log(name)
 // }
 
+const l_CurrentFrame_addr = getPrivateSymbol("l_CurrentFrame");
+
 // print address of functions
 let result = DebugSymbol.fromName("GetKeys")
 
@@ -46,12 +48,14 @@ Interceptor.attach(GetKeys, {
     onLeave(retval) {
         if (this.playerController) {
             let button = this.playerButtonPtr.readU32()//.and(0xFF)
+            //get the current Frame
+            let currentFrame = l_CurrentFrame_addr.readInt();
             //if (button != 0) {
             //    console.log("LEAVE", button)
             //}
             let statement = db.prepare("INSERT INTO controls VALUES (?, ?, ?);");
             //This should probably be a time/iteration value for playback
-            statement.bindInteger(1, i);
+            statement.bindInteger(1, currentFrame);
             //This will only be the player controller, which is 0.
             statement.bindInteger(2, 0);
             //the controls
