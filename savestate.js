@@ -11,16 +11,16 @@ function getPrivateSymbol(name) {
 }
 
 const savestates_save_pj64_ptr = DebugSymbol.fromName("savestates_save_pj64").address
+const savestates_save_pj64_zip_ptr = DebugSymbol.fromName("savestates_save_pj64_zip_ptr").address
 
 console.log("savestate ptr");
-console.log(savestates_save_pj64_ptr);
+console.log(savestates_save_pj64_zip_ptr);
 
 Interceptor.attach(savestates_save_pj64_ptr, {
     onEnter(args) {
         console.log("inside of savestates_save");
     }
 })
-
 
 
 const savestates_save_pj64 = new NativeFunction(

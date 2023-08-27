@@ -1,8 +1,7 @@
 #TODO, create a gui that plays back a database of controls and savestate
 
-import tkinter
+
 from customtkinter import *
-import sys
 import subprocess
 import frida
 import configparser
@@ -95,11 +94,11 @@ class App(CTk):
                                     command=self.run_mupen64plus)
         self.exe_run_button.grid(row=3, column=0,pady=(0, 20))
 
-        self.record_button =CTkButton(master=self.main_frame,
-                                    text="Start Recording",
-                                    command=self.record_function,
+        self.playback_button =CTkButton(master=self.main_frame,
+                                    text="Start Playback",
+                                    command=self.playback_function,
                                     state="disabled")
-        self.record_button.grid(row=3, column=1,pady=(0, 20))
+        self.playback_button.grid(row=3, column=1,pady=(0, 20))
 
         self.okButton = CTkButton(master=self.main_frame, text="Quit", command=self.ok_function)
         self.okButton.grid(row=4, column=0, pady=(0, 20))
@@ -118,7 +117,7 @@ class App(CTk):
         print(playback_file)
         self.session = frida.attach("mupen64plus-ui-console.exe")
         f = open(playback_file, "r")
-        self.playback_file = self.session.create_script(
+        self.playbackscript = self.session.create_script(
             f.read()
         )
         f.close()
@@ -179,9 +178,9 @@ class App(CTk):
                           self.game_name,])
         self._setup_frida()
         #enable the record button
-        self.record_button.configure(state="normal")
+        self.playback_button.configure(state="normal")
     
-    def record_function(self):
+    def playback_function(self):
         
         if self.session is None:
             #We cannot do anything currently
@@ -189,28 +188,15 @@ class App(CTk):
             return
         
         #stop the recording
-        if self.recording:
-            self.recording = False
-
-            #you actually need to restart after reloading
-            self.controlscript.unload()
-            self.savescript.unload()
-            print("Stopped Recording")
-            self.record_button.configure(text="Start Recording")
-        #start the recording
-        else:
-            try:
-                self._setup_frida()
-            except Exception as e:
-                print(e)
-                #this is fine, probably
-                pass
-            self.controlscript.load()
-            self.savescript.load()
-            self.recording = True
-            print("Started Recording")
-            self.record_button.configure(text="Stop Recording")
-        pass
+        
+        try:
+            self._setup_frida()
+        except Exception as e:
+            print(e)
+            #this is fine, probably
+        self.playbackscript.load()
+        print("Started Playback")
+        self.playback_button.configure(text="Start/Restart Playback")
 
     def save_config(self):
         self.config_parser["DEFAULT"]["mupen64plus-plugins"] = self.plugin_path
