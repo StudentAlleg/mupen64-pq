@@ -46,9 +46,13 @@ let result = DebugSymbol.fromName("GetKeys")
 let GetKeys = ptr(result.address)
 console.log(GetKeys)
 
-const info = db.prepare("SELECT * FROM controls ORDER BY ROWID ASC LIMIT 1");
-console.log(info)
+
+//the basic idea is to load the save state, then iterate through this every frame and replace the controls
+//with the recorded controls
+const info = db.prepare("SELECT * FROM controls ORDER BY frame ASC");
+console.log(info);
 let current_frame = info[0];
+console.log(current_frame);
 
 Interceptor.attach(GetKeys, {
     onEnter(args) {
