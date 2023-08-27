@@ -16,31 +16,24 @@ function getPrivateInputSymbol(name) {
     return Module.enumerateSymbols("mupen64plus-input-sdl.dll").filter(e => e.name == name)[0].address
 }
 
-const savestates_load_pj64_ptr = DebugSymbol.fromName("savestates_load_pj64").address
+const savestates_load_pj64_zip_ptr = DebugSymbol.fromName("savestates_load_pj64_zip").address
 
 console.log("savestate_load ptr");
-console.log(savestates_load_pj64_ptr);
+console.log(savestates_load_pj64_zip_ptr);
 
-Interceptor.attach(savestates_load_pj64_ptr, {
+Interceptor.attach(savestates_load_pj64_zip_ptr, {
     onEnter(args) {
         console.log("inside of savestates_load");
     }
 })
 
 
-const savestates_load_pj64 = new NativeFunction( //https://github.com/mupen64plus/mupen64plus-core/blob/master/src/main/savestates.c#L962
-	savestates_load_pj64_ptr,
+const savestates_load_pj64_zip = new NativeFunction( //https://github.com/mupen64plus/mupen64plus-core/blob/master/src/main/savestates.c#L962
+savestates_load_pj64_zip_ptr,
 	'int', //return type
 	[	'pointer'/* dev */,
 		'pointer'/* char* filename */, 
-		'pointer'/* handle (passed as first arg to writer) */,
-		'pointer'/* read_func (int(void*handle, void* data, int len))*/,
 	]);
-
-//we dont need this
-//we want the value defined at github.com/mupen64plus/mupen64plus-input-sdl/blob/master/src/plugin.h#L159
-//SController[4]
-const controller_addr = getPrivateInputSymbol("controller")
 
 //int
 const l_CurrentFrame_addr = getPrivateSymbol("l_CurrentFrame");
@@ -61,11 +54,19 @@ let current_frame = controls[0];
 console.log(current_frame);
 
 //load the savestate
-let sqlload = db.prepare("SELECT * FROM savestates");
-sqlload.step();
-const savestate_to_load = sqlload[1];
+const g_dev_addr = getPrivateSymbol("g_dev");
+const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
 
+savestates_load_pj64_zip(g_dev_addr, filename);
 
+//now do playback logic
+
+//first, we want to force the frame to the first frame in our controls DB
+l_CurrentFrame_addr.writeInt(current_frame);
+
+//lets prep our db.prepare statement
+//TODO, write sql that accepts frame and player information as arguments to sort for the control
+let controls_info = db.prepare("");
 
 
 
@@ -79,6 +80,9 @@ Interceptor.attach(GetKeys, {
     },
     onLeave(retval) {
         if (this.playerController) {
+            current_frame = l_CurrentFrame_addr.readInt()
+            //TODO: get the 
+
 
         }
     }
