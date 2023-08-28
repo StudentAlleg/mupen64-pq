@@ -58,11 +58,13 @@ console.log(row);
 let first_frame = row[0];
 
 //indexed by frame
-const control_info = [0, 0, 0, 0];
+let control_info = [0, 0, 0, 0];
 //the player              the controls
 control_info[0][row[1]] = row[2]
+console.log(control_info);
 
 while(row !== null){
+    console.log(row);
     const [frame, player, control] = row;
     //first, we need to know if this is the first time we are seeing this frame
     let index = frame - first_frame;
@@ -79,7 +81,7 @@ while(row !== null){
 //load the savestate
 const g_dev_addr = getPrivateSymbol("g_dev");
 const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
-
+console.log("loading", g_dev_addr, filename)
 savestates_load_pj64_zip(g_dev_addr, filename);
 
 //now do playback logic

@@ -24,9 +24,11 @@ config_file = "playback.ini"
 config_p = configparser.ConfigParser()
 
 try:
+    f = open(config_file, "r")
+    f.close()
     config_p.read(config_file)
 except FileNotFoundError:
-    f = open(config_file, "wr")
+    f = open(config_file, "w")
     f.write("[DEFAULT]")
     f.close()
     config_p.read(config_file)
@@ -51,8 +53,8 @@ if "playback-script" not in config_p["DEFAULT"]:
 #if "save-script" not in config_p["DEFAULT"]:
 #    config_p["DEFAULT"]["save-script"] = "savestate.js"
 #
-#with open(config_file, "w") as configfile:
-#    config_p.write(configfile)
+with open(config_file, "w") as configfile:
+    config_p.write(configfile)
 
 class App(CTk):
 
@@ -118,8 +120,9 @@ class App(CTk):
         self.session = frida.attach("mupen64plus-ui-console.exe")
         f = open(playback_file, "r")
         self.playbackscript = self.session.create_script(
-            f.read()
+            f.read(), "v86"
         )
+        self.playbackscript.enable_debugger(9999)
         f.close()
         print("Frida Setup")
 

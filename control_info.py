@@ -23,9 +23,11 @@ config_file = "control_info.ini"
 config_p = configparser.ConfigParser()
 
 try:
+    f = open(config_file, "r")
+    f.close()
     config_p.read(config_file)
 except FileNotFoundError:
-    f = open(config_file, "wr")
+    f = open(config_file, "w")
     f.write("[DEFAULT]")
     f.close()
     config_p.read(config_file)
