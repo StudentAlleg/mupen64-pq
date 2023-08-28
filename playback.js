@@ -23,7 +23,7 @@ console.log(savestates_load_pj64_zip_ptr);
 
 Interceptor.attach(savestates_load_pj64_zip_ptr, {
     onEnter(args) {
-        console.log("inside of savestates_load");
+        console.log("inside of savestates_load_pj64_zip");
     }
 })
 
@@ -53,22 +53,24 @@ let smt = db.prepare("SELECT * FROM controls ORDER BY frame ASC");
 
 //we do the first row manually, so that we can remember the first frame
 let row = smt.step();
-console.log(row);
+
 
 let first_frame = row[0];
 
 //indexed by frame
-let control_info = [0, 0, 0, 0];
+let control_info = [[0, 0, 0, 0]];
 //the player              the controls
-control_info[0][row[1]] = row[2]
-console.log(control_info);
 
+control_info[0][row[1]] = row[2];
+
+
+console.log(control_info);
+row = smt.step()
 while(row !== null){
-    console.log(row);
     const [frame, player, control] = row;
     //first, we need to know if this is the first time we are seeing this frame
     let index = frame - first_frame;
-    if (control_info.length < index){
+    if (control_info.length = index){
         control_info[index] = [0, 0, 0, 0];
     }
     //then, update our array
@@ -88,8 +90,6 @@ savestates_load_pj64_zip(g_dev_addr, filename);
 
 //first, we want to force the frame to the first frame in our controls DB
 l_CurrentFrame_addr.writeInt(first_frame);
-
-
 
 Interceptor.attach(GetKeys, {
     onEnter(args) {

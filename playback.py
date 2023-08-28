@@ -122,7 +122,7 @@ class App(CTk):
         self.playbackscript = self.session.create_script(
             f.read(), "v86"
         )
-        self.playbackscript.enable_debugger(9999)
+        self.playbackscript.enable_debugger()
         f.close()
         print("Frida Setup")
 
