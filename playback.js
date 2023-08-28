@@ -50,18 +50,31 @@ console.log(GetKeys)
 //for now, lets just load the controls into an array of array, indexed by frame, with a list of all the controllers
 //control_info[current_frame-first_frame] = [0,0,0,0]
 let smt = db.prepare("SELECT * FROM controls ORDER BY frame ASC");
+
+//we do the first row manually, so that we can remember the first frame
 let row = smt.step();
-smt.log(controls_db);
+console.log(row);
 
-let first_frame = controls[0];
-//let control_info[0] = [smt[2]];
+let first_frame = row[0];
 
-while((row = smt.step()) !== null):
+//indexed by frame
+const control_info = [0, 0, 0, 0];
+//the player              the controls
+control_info[0][row[1]] = row[2]
+
+while(row !== null){
     const [frame, player, control] = row;
+    //first, we need to know if this is the first time we are seeing this frame
+    let index = frame - first_frame;
+    if (control_info.length < index){
+        control_info[index] = [0, 0, 0, 0];
+    }
+    //then, update our array
+    control_info[index][player] = control;
+    //prep the next row
+    row = smt.step();
+}
 
-
-
-console.log(current_frame);
 
 //load the savestate
 const g_dev_addr = getPrivateSymbol("g_dev");
@@ -72,11 +85,7 @@ savestates_load_pj64_zip(g_dev_addr, filename);
 //now do playback logic
 
 //first, we want to force the frame to the first frame in our controls DB
-l_CurrentFrame_addr.writeInt(current_frame);
-
-//lets prep our db.prepare statement
-//TODO, write sql that accepts frame and player information as arguments to sort for the control
-let controls_info = db.prepare("");
+l_CurrentFrame_addr.writeInt(first_frame);
 
 
 
@@ -90,10 +99,16 @@ Interceptor.attach(GetKeys, {
     },
     onLeave(retval) {
         if (this.playerController) {
-            current_frame = l_CurrentFrame_addr.readInt()
-            //TODO: get the 
-
-
+            const current_frame = l_CurrentFrame_addr.readInt()
+            let index = current_framefirst_frame
+            if (control_info.length < index){
+                //we should stop playback
+                //let's just throw an error!
+                //(great idea)
+                throw new Error("End of Recording");
+            }
+            //else, we replace the button pointer with our recorded controls
+            this.playerButtonPtr.writeU32Int(control_info[index][0]);
         }
     }
   });
