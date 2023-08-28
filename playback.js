@@ -47,10 +47,20 @@ console.log(GetKeys)
 
 //the basic idea is to load the save state, then iterate through this every frame and replace the controls
 //with the recorded controls
-let controls = db.prepare("SELECT * FROM controls ORDER BY frame ASC");
-controls.step();
-controls.log(info);
-let current_frame = controls[0];
+//for now, lets just load the controls into an array of array, indexed by frame, with a list of all the controllers
+//control_info[current_frame-first_frame] = [0,0,0,0]
+let smt = db.prepare("SELECT * FROM controls ORDER BY frame ASC");
+let row = smt.step();
+smt.log(controls_db);
+
+let first_frame = controls[0];
+//let control_info[0] = [smt[2]];
+
+while((row = smt.step()) !== null):
+    const [frame, player, control] = row;
+
+
+
 console.log(current_frame);
 
 //load the savestate
