@@ -64,7 +64,7 @@ let control_info = [[0, 0, 0, 0]];
 control_info[0][row[1]] = row[2];
 
 
-console.log(control_info);
+//console.log(control_info);
 row = smt.step()
 while(row !== null){
     const [frame, player, control] = row;
@@ -79,38 +79,45 @@ while(row !== null){
     row = smt.step();
 }
 
-
+console.log("control_info: ", control_info);
 //load the savestate
 const g_dev_addr = getPrivateSymbol("g_dev");
 const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
 console.log("loading", g_dev_addr, filename)
 savestates_load_pj64_zip(g_dev_addr, filename);
+console.log("finished loading");
 
 //now do playback logic
 
+console.log("forcing frame");
 //first, we want to force the frame to the first frame in our controls DB
 l_CurrentFrame_addr.writeInt(first_frame);
+console.log("frame now: ", l_CurrentFrame_addr.readInt());
 
 Interceptor.attach(GetKeys, {
     onEnter(args) {
         if (args[0].compare(0) == 0) {
+            console.log("enter GetKeys");
             //console.log("on ENTER!")
             this.playerController = true;
             this.playerButtonPtr = args[1];
         }
     },
     onLeave(retval) {
+        console.log("leave GetKeys");
         if (this.playerController) {
-            const current_frame = l_CurrentFrame_addr.readInt()
-            let index = current_framefirst_frame
+            const current_frame = l_CurrentFrame_addr.readInt();
+            let index = current_framefirst_frame;
             if (control_info.length < index){
                 //we should stop playback
                 //let's just throw an error!
                 //(great idea)
                 throw new Error("End of Recording");
             }
+            console.log("replacing: ", this.playerButtonPtr.readU32Int());
             //else, we replace the button pointer with our recorded controls
             this.playerButtonPtr.writeU32Int(control_info[index][0]);
+            console.log("with: ", this.playerButtonPtr.readU32Int());
         }
     }
   });
