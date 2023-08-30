@@ -104,20 +104,26 @@ Interceptor.attach(GetKeys, {
         }
     },
     onLeave(retval) {
-        console.log("leave GetKeys");
         if (this.playerController) {
+            console.log("start leave");
             const current_frame = l_CurrentFrame_addr.readInt();
-            let index = current_framefirst_frame;
-            if (control_info.length < index){
+            console.log("current frame: ", current_frame);
+            let index = current_frame - first_frame;
+            console.log("index: ", index);
+            if (control_info.length == index){
                 //we should stop playback
                 //let's just throw an error!
                 //(great idea)
+                console.log("end of control_info");
                 throw new Error("End of Recording");
             }
-            console.log("replacing: ", this.playerButtonPtr.readU32Int());
+            console.log("reading playerbuttonptr");
+            console.log(this.playerButtonPtr);
+            console.log("replacing: ", this.playerButtonPtr.readU32());
             //else, we replace the button pointer with our recorded controls
-            this.playerButtonPtr.writeU32Int(control_info[index][0]);
-            console.log("with: ", this.playerButtonPtr.readU32Int());
+            this.playerButtonPtr.writeU32(control_info[index][0]);
+            console.log("with: ", this.playerButtonPtr.readU32());
+            console.log("end leave");
         }
     }
   });
