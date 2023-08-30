@@ -97,7 +97,6 @@ console.log("frame now: ", l_CurrentFrame_addr.readInt());
 Interceptor.attach(GetKeys, {
     onEnter(args) {
         if (args[0].compare(0) == 0) {
-            console.log("enter GetKeys");
             //console.log("on ENTER!")
             this.playerController = true;
             this.playerButtonPtr = args[1];
@@ -117,13 +116,11 @@ Interceptor.attach(GetKeys, {
                 console.log("end of control_info");
                 throw new Error("End of Recording");
             }
-            console.log("reading playerbuttonptr");
-            console.log(this.playerButtonPtr);
+
             console.log("replacing: ", this.playerButtonPtr.readU32());
             //else, we replace the button pointer with our recorded controls
             this.playerButtonPtr.writeU32(control_info[index][0]);
             console.log("with: ", this.playerButtonPtr.readU32());
-            console.log("end leave");
         }
     }
   });
