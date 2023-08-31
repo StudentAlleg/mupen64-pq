@@ -16,6 +16,7 @@ function getPrivateInputSymbol(name) {
     return Module.enumerateSymbols("mupen64plus-input-sdl.dll").filter(e => e.name == name)[0].address
 }
 
+//todo: find a safe place to load from
 const new_frame_ptr = DebugSymbol.fromName("new_frame").address;
 
 const savestates_load_pj64_zip_ptr = DebugSymbol.fromName("savestates_load_pj64_zip").address
