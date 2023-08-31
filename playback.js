@@ -16,6 +16,8 @@ function getPrivateInputSymbol(name) {
     return Module.enumerateSymbols("mupen64plus-input-sdl.dll").filter(e => e.name == name)[0].address
 }
 
+const new_frame_ptr = DebugSymbol.fromName("new_frame").address;
+
 const savestates_load_pj64_zip_ptr = DebugSymbol.fromName("savestates_load_pj64_zip").address
 
 console.log("savestate_load ptr");
@@ -83,9 +85,21 @@ console.log("control_info: ", control_info);
 //load the savestate
 const g_dev_addr = getPrivateSymbol("g_dev");
 const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
-console.log("loading", g_dev_addr, filename)
-savestates_load_pj64_zip(g_dev_addr, filename);
-console.log("finished loading");
+
+
+let loaded = false
+
+Interceptor.attach(new_frame_ptr, {
+    onEnter(args) {
+        if (!loaded) {
+            console.log("loading", g_dev_addr, filename);
+            savestates_load_pj64_zip(g_dev_addr, filename);
+            console.log("finished loading");
+            loaded = true;
+        }
+    }
+});
+
 
 //now do playback logic
 
@@ -94,10 +108,10 @@ console.log("forcing frame");
 l_CurrentFrame_addr.writeInt(first_frame);
 console.log("frame now: ", l_CurrentFrame_addr.readInt());
 
-Interceptor.attach(GetKeys, {
+/*Interceptor.attach(GetKeys, {
     onEnter(args) {
         if (args[0].compare(0) == 0) {
-            //console.log("on ENTER!")
+            console.log("on ENTER!")
             this.playerController = true;
             this.playerButtonPtr = args[1];
         }
@@ -109,7 +123,7 @@ Interceptor.attach(GetKeys, {
             console.log("current frame: ", current_frame);
             let index = current_frame - first_frame;
             console.log("index: ", index);
-            if (control_info.length == index){
+            if (control_info.length <= index){
                 //we should stop playback
                 //let's just throw an error!
                 //(great idea)
@@ -123,4 +137,4 @@ Interceptor.attach(GetKeys, {
             console.log("with: ", this.playerButtonPtr.readU32());
         }
     }
-  });
+  });*/
