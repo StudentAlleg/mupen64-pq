@@ -1,5 +1,7 @@
 //Should probably record the game
 //TODO: make a frida js program that writes info about the control state to a sqlite database
+
+//throws this error github.com/mupen64plus/mupen64plus-core/blob/master/src/backends/api/joybus.h#L61
 console.log("Frida Find Functions");
 
 let db = SqliteDatabase.open("control_info.db", {flags: ["readonly"]});
@@ -19,6 +21,9 @@ function getPrivateInputSymbol(name) {
 //todo: find a safe place to load from
 const new_frame_ptr = DebugSymbol.fromName("new_frame").address;
 
+const main_is_paused_ptr = DebugSymbol.fromName("main_is_paused").address;
+const main_toggle_pause_ptr = DebugSymbol.fromName("main_toggle_pause").address
+
 const savestates_load_pj64_zip_ptr = DebugSymbol.fromName("savestates_load_pj64_zip").address
 
 console.log("savestate_load ptr");
@@ -30,6 +35,21 @@ Interceptor.attach(savestates_load_pj64_zip_ptr, {
     }
 })
 
+//this function checks to see if main is paused
+const main_is_paused = new NativeFunction(
+    main_is_paused_ptr,
+    'int', //return type
+    ['void']
+)
+
+//this function toggles main being paused
+const main_toggle_pause = new NativeFunction(
+    main_toggle_pause_ptr,
+    'void', //return type
+    ['void']
+)
+
+console.log(main_is_paused_ptr, main_is_paused_ptr);
 
 const savestates_load_pj64_zip = new NativeFunction( //https://github.com/mupen64plus/mupen64plus-core/blob/master/src/main/savestates.c#L962
 savestates_load_pj64_zip_ptr,
@@ -87,10 +107,22 @@ console.log("control_info: ", control_info);
 const g_dev_addr = getPrivateSymbol("g_dev");
 const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
 
+//lets try pausing before loading
+console.log("main_is_paused()", main_is_paused("void"));
+if (!main_is_paused("void")) {
+    console.log("pausing");
+    main_toggle_pause("void");
+}
+savestates_load_pj64_zip(g_dev_addr, filename);
+//unpause
+if (main_is_paused("void")) {
+    console.log("resuming");
+    main_toggle_pause("void");
+}
 
 let loaded = false
 
-Interceptor.attach(new_frame_ptr, {
+/*Interceptor.attach(new_frame_ptr, {
     onEnter(args) {
         if (!loaded) {
             console.log("loading", g_dev_addr, filename);
@@ -99,7 +131,7 @@ Interceptor.attach(new_frame_ptr, {
             loaded = true;
         }
     }
-});
+});*/
 
 
 //now do playback logic
