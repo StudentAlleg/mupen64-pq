@@ -19,7 +19,8 @@ function getPrivateInputSymbol(name) {
 }
 
 //todo: find a safe place to load from
-const new_frame_ptr = DebugSymbol.fromName("new_frame").address;
+//TODO: try CoreDoCommand
+const main_state_load_ptr = DebugSymbol.fromName("main_state_load").address;
 
 const main_is_paused_ptr = DebugSymbol.fromName("main_is_paused").address;
 const main_toggle_pause_ptr = DebugSymbol.fromName("main_toggle_pause").address
@@ -29,11 +30,23 @@ const savestates_load_pj64_zip_ptr = DebugSymbol.fromName("savestates_load_pj64_
 console.log("savestate_load ptr");
 console.log(savestates_load_pj64_zip_ptr);
 
+Interceptor.attach(main_state_load_ptr, {
+    onEnter(args) {
+        console.log("instead of main_state_load");
+    }
+})
+
 Interceptor.attach(savestates_load_pj64_zip_ptr, {
     onEnter(args) {
         console.log("inside of savestates_load_pj64_zip");
     }
 })
+
+const main_state_load = new NativeFunction(
+    main_state_load_ptr,
+    'void',
+    ['pointer'] //const char *filename
+)
 
 //this function checks to see if main is paused
 const main_is_paused = new NativeFunction(
@@ -105,10 +118,12 @@ while(row !== null){
 console.log("control_info: ", control_info);
 //load the savestate
 const g_dev_addr = getPrivateSymbol("g_dev");
-const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
+const filename = Memory.allocUtf8String("savestates_m64p_initial.st");
+
+main_state_load(filename);
 
 //lets try pausing before loading
-console.log("main_is_paused()", main_is_paused("void"));
+/*console.log("main_is_paused()", main_is_paused("void"));
 if (!main_is_paused("void")) {
     console.log("pausing");
     main_toggle_pause("void");
@@ -118,7 +133,7 @@ savestates_load_pj64_zip(g_dev_addr, filename);
 if (main_is_paused("void")) {
     console.log("resuming");
     main_toggle_pause("void");
-}
+}*/
 
 let loaded = false
 

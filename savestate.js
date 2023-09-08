@@ -9,18 +9,25 @@ db.exec("CREATE TABLE IF NOT EXISTS savestates(i INT PRIMARY KEY, savestate BLOB
 function getPrivateSymbol(name) {
 	return Module.enumerateSymbols("mupen64plus.dll").filter(e => e.name == name)[0].address
 }
-
+const savestates_save_m64p_ptr = DebugSymbol.fromName("savestates_save_m64p").address
 const savestates_save_pj64_ptr = DebugSymbol.fromName("savestates_save_pj64").address
 const savestates_save_pj64_zip_ptr = DebugSymbol.fromName("savestates_save_pj64_zip").address
 
 console.log("savestate ptr");
-console.log(savestates_save_pj64_zip_ptr);
+console.log(savestates_save_m64p_ptr);
 
-Interceptor.attach(savestates_save_pj64_zip_ptr, {
+Interceptor.attach(savestates_save_m64p_ptr, {
     onEnter(args) {
-        console.log("inside of savestates_save_pj64_zip");
+        console.log("inside of savestates_save_m64p");
     }
 })
+
+const savestates_save_m64p = new NativeFunction(
+	savestates_save_m64p_ptr,
+	'int', //return type
+	[	'pointer', //dev
+		'pointer', //char *filepath
+	]);
 
 const savestates_save_pj64_zip = new NativeFunction(
 	savestates_save_pj64_zip_ptr,
@@ -53,11 +60,11 @@ const g_dev_addr = getPrivateSymbol("g_dev");
 console.log(g_dev_addr);
 const ignored_handle = ptr(42);
 
-const filename = Memory.allocUtf8String("savestates_pj64_initial.zip");
+const filename = Memory.allocUtf8String("savestates_m64p_initial.st");
 
-console.log("starting savestates_save_pj64_zip");
+console.log("starting savestates_save_m64p");
 
-savestates_save_pj64_zip(g_dev_addr, filename);
+savestates_save_m64p(g_dev_addr, filename);
 /*let statement = db.prepare("INSERT INTO savestates VALUES (?, ?);");
 //This should probably be a time/iteration value for playback
 statement.bindInteger(1, 1);
