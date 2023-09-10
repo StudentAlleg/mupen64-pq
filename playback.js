@@ -18,8 +18,18 @@ function getPrivateInputSymbol(name) {
     return Module.enumerateSymbols("mupen64plus-input-sdl.dll").filter(e => e.name == name)[0].address
 }
 
+//gets a private symbol from the frontend dll
+//we want this to future proof
+
+
 //todo: find a safe place to load from
 //TODO: try CoreDoCommand
+
+//typdef enum
+const M64CMD_STATE_SAVE = 11 //https://github.com/mupen64plus/mupen64plus-core/blob/master/src/api/m64p_types.h#L156
+
+const CoreDoCommand_ptr = DebugSymbol.fromName("")
+
 const main_state_load_ptr = DebugSymbol.fromName("main_state_load").address;
 
 const main_is_paused_ptr = DebugSymbol.fromName("main_is_paused").address;
@@ -41,6 +51,15 @@ Interceptor.attach(savestates_load_pj64_zip_ptr, {
         console.log("inside of savestates_load_pj64_zip");
     }
 })
+
+const CoreDoCommand = (
+    CoreDoCommand_ptr,
+    'int', //return type: m64p_error (typedef enum)
+    [   'int', //m64p_command (typedef enum)
+        'int', //ParamInt
+        'pointer', //void *ParamPointer
+    ]
+)
 
 const main_state_load = new NativeFunction(
     main_state_load_ptr,
@@ -120,7 +139,12 @@ console.log("control_info: ", control_info);
 const g_dev_addr = getPrivateSymbol("g_dev");
 const filename = Memory.allocUtf8String("savestates_m64p_initial.st");
 
-main_state_load(filename);
+//first param is command
+//second param is unused here
+//third param is a char* pointer
+CoreDoCommand(M64CMD_STATE_SAVE, 0, filename);
+
+//main_state_load(filename);
 
 //lets try pausing before loading
 /*console.log("main_is_paused()", main_is_paused("void"));
