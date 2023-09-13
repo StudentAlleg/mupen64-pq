@@ -26,9 +26,10 @@ function getPrivateInputSymbol(name) {
 //TODO: try CoreDoCommand
 
 //typdef enum
-const M64CMD_STATE_SAVE = 11 //https://github.com/mupen64plus/mupen64plus-core/blob/master/src/api/m64p_types.h#L156
+const M64CMD_STATE_SAVE = ptr(0xb) //11 //https://github.com/mupen64plus/mupen64plus-core/blob/master/src/api/m64p_types.h#L156
+const ZERO = ptr(0x0); //unused
 
-const CoreDoCommand_ptr = DebugSymbol.fromName("")
+const CoreDoCommand_ptr = DebugSymbol.fromName("CoreDoCommand").address;
 
 const main_state_load_ptr = DebugSymbol.fromName("main_state_load").address;
 
@@ -39,6 +40,16 @@ const savestates_load_pj64_zip_ptr = DebugSymbol.fromName("savestates_load_pj64_
 
 console.log("savestate_load ptr");
 console.log(savestates_load_pj64_zip_ptr);
+
+console.log("CoreDoCommand_ptr:", CoreDoCommand_ptr);
+
+Interceptor.attach(CoreDoCommand_ptr,
+    {
+        onEnter(args) {
+            console.log("CoreDoCommand");
+            console.log("inside of CoreDoCommand with args:", args[0], args[1], args[2]);
+        }
+    })
 
 Interceptor.attach(main_state_load_ptr, {
     onEnter(args) {
@@ -134,15 +145,17 @@ while(row !== null){
     row = smt.step();
 }
 
-console.log("control_info: ", control_info);
+console.log("control_info:", control_info);
 //load the savestate
 const g_dev_addr = getPrivateSymbol("g_dev");
 const filename = Memory.allocUtf8String("savestates_m64p_initial.st");
 
+
 //first param is command
 //second param is unused here
 //third param is a char* pointer
-CoreDoCommand(M64CMD_STATE_SAVE, 0, filename);
+
+CoreDoCommand(M64CMD_STATE_SAVE, ZERO, filename);
 
 //main_state_load(filename);
 
